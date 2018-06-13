@@ -1,5 +1,5 @@
-const HelloWorld = artifacts.require('../contracts/HelloWorld.sol');
+const Math = artifacts.require('../contracts/Math.sol');
 
 module.exports = (deployer) => {
-	deployer.deploy(HelloWorld);
+	deployer.deploy(Math);
 };
