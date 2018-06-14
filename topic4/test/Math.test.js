@@ -4,10 +4,10 @@ const testUtil = require('./utils/test.util.js');
 
 contract('Math', () => {
 	let sut;
-
+	
 	const uint256MaxValue = '115792089237316195423570985008687907853269984665640564039457584007913129639935';
 
-	beforeEach(async () => {
+	beforeEach( async () => {
 		sut = await Math.new();
 	});
 
@@ -140,7 +140,7 @@ contract('Math', () => {
 
 		const currentStateNumber = await sut.stateNumber.call();
 		// Assert
-		assert.equal(currentStateNumber, valueToAdd << empower);
+		assert.equal(currentStateNumber, 4294967296);
 	});
 
 	it('mod Should return the remainder of dividing the stateNumber by the `_inputNumber` When passed valid argument', async () => {
