@@ -2,49 +2,44 @@ pragma solidity ^0.4.23;
 
 import './interfaces/IMath.sol';
 
+
 contract Math is IMath {
 
-    uint _stateNumber = 0;
-
-	function stateNumber() external view returns (uint) {
-        return _stateNumber;
-    }
+	uint256 public number = 0;
 
 	function resetStateNumber() external {
-        _stateNumber = 0;
-    }
+		number = 0;
+	}
 
 	function add(uint256 _inputNumber) external {
-        uint sum = _stateNumber + _inputNumber;
-		assert(sum >= _stateNumber);
-		_stateNumber = sum;
-    }
+		uint256 sum = number + _inputNumber;
+		assert(sum >= number);
+		number = sum;
+	}
 
 	function sub(uint256 _inputNumber) external {
-		assert(_inputNumber <= _stateNumber);
-        uint diff = _stateNumber - _inputNumber;
-		_stateNumber = diff;
-    }
+		assert(_inputNumber <= number);
+		number -= _inputNumber;
+	}
 
 	function mul(uint256 _inputNumber) external {
-        uint product = _stateNumber * _inputNumber;
-		assert(_stateNumber == 0 || _stateNumber == product / _inputNumber);
-		_stateNumber = product;
-    }
+		uint256 product = number * _inputNumber;
+		assert(product == 0 || number == product / _inputNumber);
+		number = product;
+	}
 
 	function div(uint256 _inputNumber) external {
-        uint res = _stateNumber / _inputNumber;
-		_stateNumber = res;
-    }
+		number /= _inputNumber;
+	}
 
 	function pow(uint256 _inputNumber) external {
-        uint raised = _stateNumber**_inputNumber;
-		assert(raised > _stateNumber);
-		_stateNumber = raised;
-    }
+		uint256 raised = number**_inputNumber;
+		assert(raised >= number);
+		number = raised;
+	}
 
 	function mod(uint256 _inputNumber) external {
-        _stateNumber = _stateNumber % _inputNumber;
-    }
+		number %= _inputNumber;
+	}
 
 }
