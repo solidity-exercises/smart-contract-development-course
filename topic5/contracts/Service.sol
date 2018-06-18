@@ -24,10 +24,6 @@ contract Service is Owned {
         _;
     }
 
-    constructor() public {
-        owner = msg.sender;
-    }
-
     function buyService() public payable canBuy {
         if (msg.value > serviceCost) {
             msg.sender.transfer(msg.value - serviceCost);
