@@ -18,11 +18,12 @@ contract PeopleBalances is Ownable {
     }
 
     function buy() public payable isCrowdsale {
-           balances[msg.sender] += msg.value * EXCHANGE_RATE;
            if (!hasHeldTokens[msg.sender]) {
                hasHeldTokens[msg.sender] = true;
                tokenHolders.push(msg.sender);
            }
+           
+           balances[msg.sender] += msg.value * EXCHANGE_RATE;
     }
     
     function transferTokens(address _to, uint256 _amount) public {
@@ -30,12 +31,13 @@ contract PeopleBalances is Ownable {
         require(balances[msg.sender] >= _amount);
         require(_to != address(0));
 
-        balances[msg.sender] -= _amount;
-        balances[_to] += _amount;
         if (!hasHeldTokens[_to]) {
             hasHeldTokens[_to] = true;
             tokenHolders.push(_to);
         }
+
+        balances[msg.sender] -= _amount;
+        balances[_to] += _amount;
     }
 
     function withdraw(uint256 _amount) public onlyOwner {
