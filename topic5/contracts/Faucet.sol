@@ -1,12 +1,12 @@
 pragma solidity ^0.4.23;
 
-import './Owned.sol';
+import './Destructible.sol';
 
-contract Faucet is Owned {
+contract Faucet is Destructible {
 
     uint256 public sendAmount = 1 ether;
     
-    event LogWithdrawal(address _withdrawAddr, uint256 _amount);
+    event LogWithdrawal(address withdrawAddr, uint256 amount);
     
     modifier canWithdraw {
         require(sendAmount <= address(this).balance);
@@ -20,19 +20,18 @@ contract Faucet is Owned {
     }
 
     function withdraw() public canWithdraw {
-        msg.sender.transfer(sendAmount);
         emit LogWithdrawal(msg.sender, sendAmount);
+        
+        msg.sender.transfer(sendAmount);
     }
 
     function sendTo(address _to) public canWithdraw {
         require(_to != address(0));
         require(_to != address(this));
-        _to.transfer(sendAmount);
-        emit LogWithdrawal(msg.sender, sendAmount);
-    }
 
-    function selfdestructContract() public onlyOwner {
-        selfdestruct(this);
+        emit LogWithdrawal(msg.sender, sendAmount);
+        
+        _to.transfer(sendAmount);
     }
 
     function getContractBalance() public view returns (uint256) {

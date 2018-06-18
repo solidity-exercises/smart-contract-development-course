@@ -1,29 +1,26 @@
 pragma solidity ^0.4.23;
 
-contract Service {
+import "./Owned.sol";
+
+contract Service is Owned {
     
-    address public owner;
-    uint256 serviceCost = 1 ether;
-    uint256 withdrawLimit = 5 ether;
-    uint256 lastPurchaseTime = 0;
-    uint256 lastWithdrawTime = 0;
+    uint256 constant public serviceCost = 1 ether;
+    uint256 constant public withdrawLimit = 5 ether;
+    uint256 public lastPurchaseTime = 0;
+    uint256 public lastWithdrawTime = 0;
 
     event LogPurchase(address _buyer);
 
     modifier canBuy() {
-        if (lastPurchaseTime != 0){
-            require(lastPurchaseTime + 2 minutes <= now);
-        }
+        require(lastPurchaseTime + 2 minutes <= now);
+        require(msg.value >= serviceCost);
         _;
     }
 
-    modifier canWithdraw(uint256 _amount) {
-        require(msg.sender == owner);   
+    modifier canWithdraw(uint256 _amount) { 
         assert(_amount <= withdrawLimit);
         require(address(this).balance >= _amount);
-        if (lastWithdrawTime != 0) {
-            require(lastWithdrawTime + 5 hours <= now);
-        }
+        require(lastWithdrawTime + 5 hours <= now);
         _;
     }
 
@@ -32,15 +29,16 @@ contract Service {
     }
 
     function buyService() public payable canBuy {
-        require(msg.value >= serviceCost);
         if (msg.value > serviceCost) {
             msg.sender.transfer(msg.value - serviceCost);
         }
-        lastPurchaseTime = now;
+     
         emit LogPurchase(msg.sender);
+     
+        lastPurchaseTime = now;
     }
 
-    function withdraw(uint256 _amount) public canWithdraw(_amount) {
+    function withdraw(uint256 _amount) public canWithdraw(_amount) onlyOwner {
         owner.transfer(_amount);
         lastWithdrawTime = now;
     }
