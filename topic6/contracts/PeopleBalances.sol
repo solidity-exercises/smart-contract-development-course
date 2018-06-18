@@ -12,18 +12,15 @@ contract PeopleBalances is Ownable {
     mapping (address=>bool) public hasHeldTokens;
     address[] public tokenHolders;
 
-    modifier isCrowdsale {
-        require(crowdsaleEndTime >= now);
-        _;
-    }
-
     function buy() public payable isCrowdsale {
-           if (!hasHeldTokens[msg.sender]) {
-               hasHeldTokens[msg.sender] = true;
-               tokenHolders.push(msg.sender);
-           }
-           
-           balances[msg.sender] += msg.value * EXCHANGE_RATE;
+        require(crowdsaleEndTime >= now);
+
+        if (!hasHeldTokens[msg.sender]) {
+            hasHeldTokens[msg.sender] = true;
+            tokenHolders.push(msg.sender);
+        }
+        
+        balances[msg.sender] += msg.value * EXCHANGE_RATE;
     }
     
     function transferTokens(address _to, uint256 _amount) public {
