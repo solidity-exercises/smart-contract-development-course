@@ -25,18 +25,19 @@ contract Service is Owned {
     }
 
     function buyService() public payable canBuy {
-        if (msg.value > serviceCost) {
-            msg.sender.transfer(msg.value - serviceCost);
-        }
-     
         emit LogPurchase(msg.sender);
      
         lastPurchaseTime = now;
+        
+        if (msg.value > serviceCost) {
+            msg.sender.transfer(msg.value - serviceCost);
+        }
     }
 
     function withdraw(uint256 _amount) public canWithdraw(_amount) onlyOwner {
-        owner.transfer(_amount);
         lastWithdrawTime = now;
+        
+        owner.transfer(_amount);
     }
 
     function getContractBalance() public view returns (uint256) {
