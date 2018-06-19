@@ -1,9 +1,12 @@
 pragma solidity ^0.4.23;
 
 import './Ownable.sol';
+import './SafeMath.sol';
 
 contract PeopleBalances is Ownable {
     
+    using SafeMath for uint256;
+
     uint256 public crowdsaleEndTime = now + 5 minutes;
     uint256 public ownerWithdrawStartTime = now + 365 days;
     uint16 constant public EXCHANGE_RATE = 5;
@@ -12,13 +15,10 @@ contract PeopleBalances is Ownable {
     mapping (address=>bool) public hasHeldTokens;
     address[] public tokenHolders;
 
-    function buy() public payable isCrowdsale {
+    function buy() public payable {
         require(crowdsaleEndTime >= now);
 
-        if (!hasHeldTokens[msg.sender]) {
-            hasHeldTokens[msg.sender] = true;
-            tokenHolders.push(msg.sender);
-        }
+        _checkHolder(msg.sender);
         
         balances[msg.sender] += msg.value * EXCHANGE_RATE;
     }
@@ -28,13 +28,17 @@ contract PeopleBalances is Ownable {
         require(balances[msg.sender] >= _amount);
         require(_to != address(0));
 
-        if (!hasHeldTokens[_to]) {
-            hasHeldTokens[_to] = true;
-            tokenHolders.push(_to);
-        }
+        _checkHolder(_to);
 
-        balances[msg.sender] -= _amount;
-        balances[_to] += _amount;
+        balances[msg.sender] = balances[msg.sender].sub(_amount);
+        balances[_to] = balances[_to].add(_amount);
+    }
+
+    function _checkHolder(address _holder) private {
+        if (!hasHeldTokens[_holder]) {
+            hasHeldTokens[_holder] = true;
+            tokenHolders.push(_holder);
+        }
     }
 
     function withdraw(uint256 _amount) public onlyOwner {
