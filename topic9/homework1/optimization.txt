@@ -1,0 +1,27 @@
+-Made MemberContr into MemberLib and removed the state variable "member"
+ because it makes no sense to expensivelly create a new contract every
+ single time for creating a new member when all we need is the struct.
+ So we now use the struct "Member" and its library for the functions.
+
+-Removed constructor in MemberContr as it is redundant
+
+-Created new function for struct creation since it makes sense for the
+ member to be created in MemberLib
+
+-Removed tmp1, tmp2, tmp3 as it is stupid and expesnive to have these storage
+ variables changed everytime we create a new member. Also they are redundant and
+ serve no purpose
+
+-Removed the memberList array in storage as it is expensive and redundant
+
+-Changed mapping to map to new library which we are using for Member
+
+-Slightly modified modifier to use new Member variable "isMember" rather than
+ using get which is more expensive since it returns more variables which we don't
+ need to check for member
+
+-Removed get as it is now redundant (and possibly always was)
+
+------------------------------
+-> previous Gas price for adding new member = 500,000
+-> new Gas price = 80,000
