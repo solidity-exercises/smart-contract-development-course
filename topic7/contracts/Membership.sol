@@ -10,7 +10,6 @@ contract Membership is Destructible {
     uint public memberCount = 0;
 
     struct Member {
-        bool isMember;
         uint donations;
         uint lastDonationTimestamp;
         uint lastDonationValue;
@@ -31,27 +30,14 @@ contract Membership is Destructible {
         _addMember(_member);
     }
 
-    function _addMember(address _member) private {
-        memberCount = memberCount.add(1);
-        members[_member].isMember = true;
-        // artificial donation timestamp for the sake of initialization and consistency
-        // i.e. member still has to donate within 1 hour of becoming a member
-        members[_member].lastDonationTimestamp = now;
-    }
-
     function removeMember(address _member) public onlyOwner {
         _removeMember(_member);
     }
 
-    function _removeMember(address _member) private {
-        memberCount = memberCount.sub(1);
-        delete members[_member];
-    }
-
     function vote(address _member) public {
         assert(_member != address(0));
-        require(members[msg.sender].isMember);
-        require(!members[_member].isMember);
+        require(isMember(members[msg.sender]));
+        require(!isMember(members[_member]));
         require(!votedForBy[_member][msg.sender]);
         
         if (checkMembershipExpiry(msg.sender)) {
@@ -60,15 +46,15 @@ contract Membership is Destructible {
             votedForBy[_member][msg.sender] = true;
             votes[_member] = votes[_member].add(1);
 
-            if (votes[_member] > uint(memberCount.div(2))){
+            if (votes[_member] > memberCount.div(2)){
                 _addMember(_member);
             }
         }
     }
 
     function unvote(address _member) public {
-        require(members[msg.sender].isMember);
-        require(!members[_member].isMember);
+        require(members[msg.sender]));
+        require(!isMember(members[_member]));
         require(votedForBy[_member][msg.sender]);
 
         if (checkMembershipExpiry(msg.sender)) {
@@ -80,14 +66,14 @@ contract Membership is Destructible {
     }
 
     function donate() public payable {
-        require(members[msg.sender].isMember);
+        require(isMember(members[msg.sender]));
 
         if (checkMembershipExpiry(msg.sender)) {
             _removeMember(msg.sender);
         } else {
-            members[msg.sender].donations = members[msg.sender].donations.add(msg.value);
-            members[msg.sender].lastDonationTimestamp = now;
-            members[msg.sender].lastDonationValue = msg.value;
+            Member memory mem = Member({donations: members[msg.sender], lastDonationTimestamp: now, lastDonationValue: msg.value});
+
+            members[msg.sender] = mem;
         }
     }
 
@@ -97,10 +83,22 @@ contract Membership is Destructible {
     }
 
     function isMember(address _person) public view returns (bool) {
-        return members[_person].isMember;
+        return members[_person].lastDonationTimestamp > 0;
     }
 
     function getVotes(address _person) public view returns (uint) {
         return votes[_person];
+    }
+
+    function _addMember(address _member) private {
+        memberCount = memberCount.add(1);
+        // artificial donation timestamp for the sake of initialization and consistency
+        // i.e. member still has to donate within 1 hour of becoming a member
+        members[_member].lastDonationTimestamp = now;
+    }
+
+    function _removeMember(address _member) private {
+        memberCount = memberCount.sub(1);
+        delete members[_member];
     }
 }
