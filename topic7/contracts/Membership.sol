@@ -39,6 +39,8 @@ contract Membership is Destructible {
         require(isMember(members[msg.sender]));
         require(!isMember(members[_member]));
         require(!votedForBy[_member][msg.sender]);
+        // the impossible value of 1 serves as a flag that this address  was previously a member
+        require(members[_member].lastDonationTimestamp != 1);
         
         if (checkMembershipExpiry(msg.sender)) {
             _removeMember(msg.sender);
@@ -91,6 +93,7 @@ contract Membership is Destructible {
     }
 
     function _addMember(address _member) private {
+        
         memberCount = memberCount.add(1);
         // artificial donation timestamp for the sake of initialization and consistency
         // i.e. member still has to donate within 1 hour of becoming a member
@@ -99,6 +102,9 @@ contract Membership is Destructible {
 
     function _removeMember(address _member) private {
         memberCount = memberCount.sub(1);
-        delete members[_member];
+        // artificial "delete"
+        // a value of one will serve as a flag that this address was once a member
+        // and therefore should not be added again to preserve logic in mappings
+        members[_member].lastDonationTimestamp = 1;
     }
 }
