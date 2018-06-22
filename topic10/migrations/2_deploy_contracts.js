@@ -1,9 +1,10 @@
-var SafeMath = artifacts.require('../contracts/SafeMath.sol');
-var ERC20 = artifacts.require('../contracts/ERC20.sol');
-var ICO = artifacts.require('../contracts/ICO.sol');
+const SafeMath = artifacts.require('../contracts/SafeMath.sol');
+// const DogeCoin = artifacts.require('../contracts/DogeCoin.sol');
+const StandardToken = artifacts.require('../contracts/StandardToken.sol');
 
 module.exports = function(deployer) {
     deployer.deploy(SafeMath);
-    deployer.deploy(ERC20);
-    deployer.deploy(ICO);
+    deployer.link(SafeMath, StandardToken);
+    console.log("fdafgu891et jidajfgadlj glad jgil dildjagdilagjdl")
+    deployer.deploy(StandardToken);
 }

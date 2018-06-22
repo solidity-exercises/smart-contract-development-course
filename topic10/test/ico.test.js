@@ -1,12 +1,12 @@
-const ICO = artifacts.require('../contracts/ICO.sol');
+const DogeCoin = artifacts.require('../contracts/DogeCoin.sol');
 
 const testUtil = require('./utils/test.util.js');
 
-contract('ICO', (accounts) => {
+contract('DogeCoin', (accounts) => {
     let sut;
     
 	beforeEach( async () => {
-		sut = await ICO.new();
+		sut = await DogeCoin.new();
     });
 
     it('buy Should not allow people to purchase tokens When crowdsale ends', async () => {
