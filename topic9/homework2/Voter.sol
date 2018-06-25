@@ -4,41 +4,24 @@ library VotingLib {
     using SafeMath for uint;
 
     struct VotingProposal {
-        address addr;
-        uint value;
-        uint votesFor;
-        uint votesAgainst;
-        uint decidingVotes;
         mapping (address=>bool) voted;
-        bool finished;
-        bool accepted;
+        address addr;
+        uint decidingVotes;
+        uint votesFor;
+        uint deadline;
+        uint value;
     }
 
     function createVoting(address _proposal, uint _value, uint _decidingVotes) {
-        return VotingProposal({value: _value, votesFor: 0, votesAgainst: 0, finished: false, accepted: false, addr: _proposal, votes: 0, decidingVotes: _decidingVotes});
+        return VotingProposal({value: _value, votesFor: 0, deadline: now, addr: _proposal, votes: 0, decidingVotes: _decidingVotes});
     }
 
-    function vote(Voting storage self, uint importance, bool forOrAgainst) {
-        require(!self.finished);
-        require(!self.voted[msg.sender]);
+    function vote(Voting storage _self, uint _importance) {
+        require(!_self.deadline < now);
+        require(!_self.voted[msg.sender]);
 
-        self.voted[msg.sender] = true;
-
-        if (forOrAgainst) {
-            self.votesFor = self.votesFor.add(importance);
-
-            if (self.votesFor >= self.decidingVotes) {
-                self.finished = true;
-                self.accepted = true;
-            }
-        } else {
-            self.votesAgainst = self.votesAgainst.add(importance);
-
-            if (self.votesAgainst >= self.decidingVotes) {
-                self.finished = true;
-                self.accepted = false;
-            }
-        }
+        _self.voted[msg.sender] = true;
+        _self.votesFor = _self.votesFor.add(_importance);
     }
 }
 
@@ -51,32 +34,28 @@ contract Voter is Ownable {
     event LogVotingSuccessful(address indexed addr, uint value);
     event LogWithdrawal(address indexed addr);
 
-    function () public payable {}
-
     struct Member {
-        bool isMember;
         uint importance;    
     }
-
+    
     uint totalImportance;
     mapping (address=>Member) members;
     mapping (address=>VotingLib.VotingProposal) proposals;
     mapping (address=>uint) withdrawals;
 
-    constructor(address[] initialMembers, uint[] importances) public {
-        init(initialMembers, impotances);
-    }
+    function () public payable {}
 
-    function init(address[] initialMembers, uint[] importances) public onlyOwner {
-        require(initialMembers.length >= 3);
-        require(initialMembers.length == importances.length);
+    function init(address[] _initialMembers, uint[] _importances) public onlyOwner {
+        require(_initialMembers.length >= 3);
+        require(_initialMembers.length == _importances.length);
 
         uint tI = 0;
 
-        for (var i = 0; i < initialMembers.length; i++) {
-            members[initialMembers[i]].isMember = true;
-            members[initialMembers[i]].importance = importances[i];
-            tI = tI.add(importances[i]);
+        for (uint i = 0; i < _initialMembers.length; i++) {
+            members[_initialMembers[i]].importance = _importances[i];
+            tI = tI.add(_importances[i]);
+            
+            require(_importances >= 1);
         }
 
 
@@ -88,27 +67,26 @@ contract Voter is Ownable {
         require(_value > 0);
         require(proposals[_proposal].addr == address(0));
 
-        VotingLib.VotingProposal memory proposal = VotingLib.createVoting(_proposal, _value, totalImportance);
-        proposals[_proposal] = proposal;
+        proposals[_proposal] = VotingLib.createVoting(_proposal, _value, totalImportance);
 
         emit LogVotingStart(_proposal, _value);
     }
 
-    function vote(address addr, bool forOrAgainst) {
-        require(members[msg.sender].isMember);
+    function voteFor(address _addr) public {
+        require(members[msg.sender].importance != 0);
 
-        VotingLib.VotingProposal storage proposal = proposals[addr];
+        VotingLib.VotingProposal storage proposal = proposals[_addr];
 
-        VotingLib.vote(proposal, forOrAgainst, members[msg.sender].importance)
+        VotingLib.vote(proposal, _forOrAgainst, members[msg.sender].importance);
 
-        if(proposal.finished && proposal.accepted) {
-            withdrawals[addr] = withdrawals[addr].add(proposal.value);
+        if (proposal.votesFor >= decidingVotes && now < deadline) {
+            withdrawals[_addr] = withdrawals[_addr].add(proposal.value);
 
-            emit LogVotingSuccessfull(addr, proposal.value);
+            emit LogVotingSuccessfull(_addr, proposal.value);
         }
     }
 
-    function withdraw() {
+    function withdraw() public {
         require(proposals[msg.sender].accepted);
 
         uint value = withdrawals[msg.sender];

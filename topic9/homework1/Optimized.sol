@@ -33,17 +33,16 @@ contract Ownable {
 
 library MemberLib {
     struct Member {
-        bool isMember;
         uint joinedAt;
         uint fundsDonated;
     }
 
-    function createMember(bool _isMember, uint _joinedAt, uint _donation) public returns (Member){
-        return Member({isMember: _isMember, joinedAt: _joinedAt, fundsDonated: _donation});
+    function createMember(uint _joinedAt, uint _donation) public returns (Member){
+        return Member({joinedAt: _joinedAt, fundsDonated: _donation});
     }
     
     function donated(Member storage self, uint value) public {
-        self.fundsDonated = value;
+        self.fundsDonated += value;
     }
 }
 
@@ -53,14 +52,12 @@ contract Membered is Ownable{
     mapping(address => MemberLib.Member) members;
     
     modifier onlyMember {
-        require(members[msg.sender].isMember);
+        require(members[msg.sender].joinedAt != 0);
         _;
     }
     
     function addMember(address adr) public onlyOwner {
-        MemberLib.Member memory newMember = MemberLib.createMember(true, now, 0);
-        
-        members[adr] = newMember;
+        members[adr] = MemberLib.createMember(now, 0);
     }
     
     function donate() public onlyMember payable {
