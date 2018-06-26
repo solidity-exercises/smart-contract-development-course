@@ -36,8 +36,8 @@ contract Membership is Destructible {
 
     function vote(address _member) public {
         assert(_member != address(0));
-        require(isMember(members[msg.sender]));
-        require(!isMember(members[_member]));
+        require(isMember(msg.sender));
+        require(!isMember(_member));
         require(!votedForBy[_member][msg.sender]);
         // the impossible value of 1 serves as a flag that this address  was previously a member
         require(members[_member].lastDonationTimestamp != 1);
@@ -55,8 +55,8 @@ contract Membership is Destructible {
     }
 
     function unvote(address _member) public {
-        require(members[msg.sender]));
-        require(!isMember(members[_member]));
+        require(isMember(msg.sender));
+        require(!isMember(_member));
         require(votedForBy[_member][msg.sender]);
 
         if (checkMembershipExpiry(msg.sender)) {
@@ -68,12 +68,12 @@ contract Membership is Destructible {
     }
 
     function donate() public payable {
-        require(isMember(members[msg.sender]));
+        require(isMember(msg.sender));
 
         if (checkMembershipExpiry(msg.sender)) {
             _removeMember(msg.sender);
         } else {
-            Member memory mem = Member({donations: members[msg.sender], lastDonationTimestamp: now, lastDonationValue: msg.value});
+            Member memory mem = Member({donations: members[msg.sender].donations.add(msg.value), lastDonationTimestamp: now, lastDonationValue: msg.value});
 
             members[msg.sender] = mem;
         }
@@ -85,7 +85,7 @@ contract Membership is Destructible {
     }
 
     function isMember(address _person) public view returns (bool) {
-        return members[_person].lastDonationTimestamp > 0;
+        return members[_person].lastDonationTimestamp > 1;
     }
 
     function getVotes(address _person) public view returns (uint) {
